@@ -11,7 +11,7 @@ pub trait Term:
     + Clone
     + BitXor<Output = Anf<Self>>
     + Not<Output = Anf<Self>>
-    + BitAnd<Output = Anf<Self>>
+    + BitAnd
     + BitOr<Output = Anf<Self>>
 {
     fn unit() -> Self;
@@ -24,7 +24,7 @@ pub trait Term:
 pub struct BitTerm128(u128);
 
 impl BitTerm128 {
-    fn new(raw: u128) -> Self {
+    pub fn new(raw: u128) -> Self {
         Self(raw)
     }
 }
@@ -52,7 +52,7 @@ impl BitXor for BitTerm128 {
     type Output = Anf<Self>;
 
     fn bitxor(self, rhs: Self) -> Self::Output {
-        todo!()
+        Anf::from_iter([self, rhs])
     }
 }
 
@@ -60,15 +60,19 @@ impl Not for BitTerm128 {
     type Output = Anf<Self>;
 
     fn not(self) -> Self::Output {
-        todo!()
+        if self == Self::unit() {
+            Anf::zero()
+        } else {
+            Anf::from_iter([Self::unit(), self])
+        }
     }
 }
 
 impl BitAnd for BitTerm128 {
-    type Output = Anf<Self>;
+    type Output = Self;
 
     fn bitand(self, rhs: Self) -> Self::Output {
-        todo!()
+        self.extended(&rhs)
     }
 }
 
@@ -76,7 +80,7 @@ impl BitOr for BitTerm128 {
     type Output = Anf<Self>;
 
     fn bitor(self, rhs: Self) -> Self::Output {
-        todo!()
+        Anf::from_iter([self, rhs, self & rhs])
     }
 }
 
@@ -221,7 +225,7 @@ mod tests {
                 T::new(0b010),
                 T::new(0b011),
                 T::new(0b110),
-                T::new(0b111)
+                T::new(0b111),
             ])
         )
     }
