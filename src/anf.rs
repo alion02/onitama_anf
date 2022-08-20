@@ -239,7 +239,7 @@ mod tests {
     fn or_subsumption() {
         assert_eq!(
             T::new(0b01) | T::new(0b10) | T::new(0b11),
-            Anf::from_iter([T::new(0b01), T::new(0b10), T::new(0b11)]).into(),
+            Anf::from_iter([T::new(0b01), T::new(0b10), T::new(0b11)]),
         )
     }
 }
