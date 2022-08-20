@@ -3,5 +3,14 @@
 version = 3
 
 [[package]]
+name = "normform"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41c6a079e514a042b1a02850411c1ac619fa720d3eb7178a97a026344670835d"
+
+[[package]]
 name = "onitama_anf"
 version = "0.1.0"
+dependencies = [
+ "normform",
+]
