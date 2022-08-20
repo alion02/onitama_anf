@@ -20,69 +20,83 @@ pub trait Term:
     fn nth(n: usize) -> Self;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct BitTerm128(u128);
+macro_rules! bit_term_impl {
+    ($([$BitTerm:ident, $UInt:ty]),* $(,)?) => {
+        $(
+            #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+            pub struct $BitTerm($UInt);
 
-impl BitTerm128 {
-    pub fn new(raw: u128) -> Self {
-        Self(raw)
-    }
+            impl $BitTerm {
+                pub fn new(raw: $UInt) -> Self {
+                    Self(raw)
+                }
+            }
+
+            impl Term for $BitTerm {
+                fn unit() -> Self {
+                    Self(0)
+                }
+
+                fn is_subset(&self, other: &Self) -> bool {
+                    self.0 & other.0 == self.0
+                }
+
+                fn extended(self, other: &Self) -> Self {
+                    Self(self.0 | other.0)
+                }
+
+                fn nth(n: usize) -> Self {
+                    assert!(n < <$UInt>::BITS as usize);
+                    Self(1 << n)
+                }
+            }
+
+            impl BitXor for $BitTerm {
+                type Output = Anf<Self>;
+
+                fn bitxor(self, rhs: Self) -> Self::Output {
+                    Anf::from_iter([self, rhs])
+                }
+            }
+
+            impl Not for $BitTerm {
+                type Output = Anf<Self>;
+
+                fn not(self) -> Self::Output {
+                    if self == Self::unit() {
+                        Anf::zero()
+                    } else {
+                        Anf::from_iter([Self::unit(), self])
+                    }
+                }
+            }
+
+            impl BitAnd for $BitTerm {
+                type Output = Self;
+
+                fn bitand(self, rhs: Self) -> Self::Output {
+                    self.extended(&rhs)
+                }
+            }
+
+            impl BitOr for $BitTerm {
+                type Output = Anf<Self>;
+
+                fn bitor(self, rhs: Self) -> Self::Output {
+                    Anf::from_iter([self, rhs, self & rhs])
+                }
+            }
+        )*
+    };
 }
 
-impl Term for BitTerm128 {
-    fn unit() -> Self {
-        Self(0)
-    }
-
-    fn is_subset(&self, other: &Self) -> bool {
-        self.0 & other.0 == self.0
-    }
-
-    fn extended(self, other: &Self) -> Self {
-        Self(self.0 | other.0)
-    }
-
-    fn nth(n: usize) -> Self {
-        assert!(n < u128::BITS as usize);
-        Self(1 << n)
-    }
-}
-
-impl BitXor for BitTerm128 {
-    type Output = Anf<Self>;
-
-    fn bitxor(self, rhs: Self) -> Self::Output {
-        Anf::from_iter([self, rhs])
-    }
-}
-
-impl Not for BitTerm128 {
-    type Output = Anf<Self>;
-
-    fn not(self) -> Self::Output {
-        if self == Self::unit() {
-            Anf::zero()
-        } else {
-            Anf::from_iter([Self::unit(), self])
-        }
-    }
-}
-
-impl BitAnd for BitTerm128 {
-    type Output = Self;
-
-    fn bitand(self, rhs: Self) -> Self::Output {
-        self.extended(&rhs)
-    }
-}
-
-impl BitOr for BitTerm128 {
-    type Output = Anf<Self>;
-
-    fn bitor(self, rhs: Self) -> Self::Output {
-        Anf::from_iter([self, rhs, self & rhs])
-    }
-}
+bit_term_impl!(
+    [BitTerm8, u8],
+    [BitTerm16, u16],
+    [BitTerm32, u32],
+    [BitTerm64, u64],
+    [BitTerm128, u128],
+);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Anf<T: Term>(HashSet<T>);
