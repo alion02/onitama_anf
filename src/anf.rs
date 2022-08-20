@@ -227,12 +227,12 @@ mod tests {
                 T::new(0b110),
                 T::new(0b111),
             ])
-        )
+        );
     }
 
     #[test]
     fn not_a_and_a() {
-        assert_eq!(!T::nth(0) & T::nth(0), Anf::zero())
+        assert_eq!(!T::nth(0) & T::nth(0), Anf::zero());
     }
 
     #[test]
@@ -240,6 +240,6 @@ mod tests {
         assert_eq!(
             T::new(0b01) | T::new(0b10) | T::new(0b11),
             Anf::from_iter([T::new(0b01), T::new(0b10), T::new(0b11)]),
-        )
+        );
     }
 }
